@@ -109,7 +109,6 @@ class LoadBalancer(TaggedELBObject):
         :ivar list backends: A list of :py:class:`boto.ec2.elb.loadbalancer.Backend
             back-end server descriptions.
         """
-        print "Using my elb"
         super(LoadBalancer,self).__init__(connection)
         self.connection = connection
         self.name = name
