@@ -758,7 +758,7 @@ class ELBConnection(AWSQueryConnection):
                              params, None)
 
     # Tag methods
-    def get_all_tags(self, filters=None, dry_run=False, max_results=None):
+    def get_all_tags(self, filters=None, dry_run=False):
         """
         Retrieve all the metadata tags associated with your account.
 
@@ -775,10 +775,6 @@ class ELBConnection(AWSQueryConnection):
         :type dry_run: bool
         :param dry_run: Set to True if the operation should not actually run.
 
-        :type max_results: int
-        :param max_results: The maximum number of paginated instance
-            items per response.
-
         :rtype: list
         :return: A list of :class:`boto.ec2.tag.Tag` objects
         """
@@ -787,8 +783,6 @@ class ELBConnection(AWSQueryConnection):
             self.build_filter_params(params, filters)
         if dry_run:
             params['DryRun'] = 'true'
-        if max_results is not None:
-            params['MaxResults'] = max_results
         return self.get_list('DescribeTags', params,
                              [('item', Tag)], verb='POST')
 
