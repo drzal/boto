@@ -756,3 +756,101 @@ class ELBConnection(AWSQueryConnection):
                                'Subnets.member.%d')
         return self.get_list('DetachLoadBalancerFromSubnets',
                              params, None)
+
+    # Tag methods
+    def get_all_tags(self, filters=None, dry_run=False, max_results=None):
+        """
+        Retrieve all the metadata tags associated with your account.
+
+        :type filters: dict
+        :param filters: Optional filters that can be used to limit
+                        the results returned.  Filters are provided
+                        in the form of a dictionary consisting of
+                        filter names as the key and filter values
+                        as the value.  The set of allowable filter
+                        names/values is dependent on the request
+                        being performed.  Check the EC2 API guide
+                        for details.
+
+        :type dry_run: bool
+        :param dry_run: Set to True if the operation should not actually run.
+
+        :type max_results: int
+        :param max_results: The maximum number of paginated instance
+            items per response.
+
+        :rtype: list
+        :return: A list of :class:`boto.ec2.tag.Tag` objects
+        """
+        params = {}
+        if filters:
+            self.build_filter_params(params, filters)
+        if dry_run:
+            params['DryRun'] = 'true'
+        if max_results is not None:
+            params['MaxResults'] = max_results
+        return self.get_list('DescribeTags', params,
+                             [('item', Tag)], verb='POST')
+
+    def build_tag_param_list(self,params, tags):
+        keys = sorted(tags.keys())
+        i = 1
+        for key in keys:
+            value = tags[key]
+            params['Tags.member.%d.Key' % i] = key
+            if value is not None:
+                params['Tags.member.%d.Value' % i] = value
+            i += 1
+
+    def create_tags(self, name, tags, dry_run=False):
+        """
+        Create new metadata tags for the specified resource ids.
+
+        :type name: string
+        :param name: name of elb
+
+        :type tags: dict
+        :param tags: A dictionary containing the name/value pairs.
+                     If you want to create only a tag name, the
+                     value for that tag should be the empty string
+                     (e.g. '').
+
+        :type dry_run: bool
+        :param dry_run: Set to True if the operation should not actually run.
+
+        """
+        params = {}
+        params['LoadBalancerNames.member.1'] = name
+        self.build_tag_param_list(params, tags)
+        if dry_run:
+            params['DryRun'] = 'true'
+        return self.get_status('AddTags', params, verb='POST')
+
+    def delete_tags(self, name, tags, dry_run=False):
+        """
+        Delete metadata tags for the specified resource ids.
+
+        :type name: string
+        :param name: name of load balancer
+
+        :type tags: dict or list
+        :param tags: Either a dictionary containing name/value pairs
+                     or a list containing just tag names.
+                     If you pass in a dictionary, the values must
+                     match the actual tag values or the tag will
+                     not be deleted.  If you pass in a value of None
+                     for the tag value, all tags with that name will
+                     be deleted.
+
+        :type dry_run: bool
+        :param dry_run: Set to True if the operation should not actually run.
+
+        """
+        if isinstance(tags, list):
+            tags = {}.fromkeys(tags, None)
+        params = {}
+        params['LoadBalancerNames.member.1'] = name
+        self.build_tag_param_list(params, tags)
+        if dry_run:
+            params['DryRun'] = 'true'
+        return self.get_status('RemoveTags', params, verb='POST')

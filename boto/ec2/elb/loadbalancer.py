@@ -26,6 +26,7 @@ from boto.ec2.elb.listelement import ListElement
 from boto.ec2.elb.policies import Policies, OtherPolicy
 from boto.ec2.elb.securitygroup import SecurityGroup
 from boto.ec2.instanceinfo import InstanceInfo
+from boto.ec2.elb.elbobject import TaggedELBObject
 from boto.resultset import ResultSet
 from boto.compat import six
 
@@ -69,7 +70,7 @@ class LoadBalancerZones(object):
         pass
 
 
-class LoadBalancer(object):
+class LoadBalancer(TaggedELBObject):
     """
     Represents an EC2 Load Balancer.
     """
@@ -108,8 +109,11 @@ class LoadBalancer(object):
         :ivar list backends: A list of :py:class:`boto.ec2.elb.loadbalancer.Backend
             back-end server descriptions.
         """
+        print "Using my elb"
+        super(LoadBalancer,self).__init__(connection)
         self.connection = connection
         self.name = name
+        self.id = name
         self.listeners = None
         self.health_check = None
         self.policies = None
@@ -131,6 +135,9 @@ class LoadBalancer(object):
         return 'LoadBalancer:%s' % self.name
 
     def startElement(self, name, attrs, connection):
+        retval = super(LoadBalancer, self).startElement(name, attrs, connection)
+        if retval is not None:
+            return retval
         if name == 'HealthCheck':
             self.health_check = HealthCheck(self)
             return self.health_check
