@@ -58,7 +58,7 @@ class TaggedELBObject(ELBObject):
         self.tags = TagSet()
 
     def startElement(self, name, attrs, connection):
-        if name == 'tagSet':
+        if name == 'TagDescriptions':
             return self.tags
         else:
             return None

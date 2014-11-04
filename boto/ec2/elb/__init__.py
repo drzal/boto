@@ -758,31 +758,19 @@ class ELBConnection(AWSQueryConnection):
                              params, None)
 
     # Tag methods
-    def get_all_tags(self, filters=None, dry_run=False):
+    def get_all_tags(self, name):
         """
         Retrieve all the metadata tags associated with your account.
 
-        :type filters: dict
-        :param filters: Optional filters that can be used to limit
-                        the results returned.  Filters are provided
-                        in the form of a dictionary consisting of
-                        filter names as the key and filter values
-                        as the value.  The set of allowable filter
-                        names/values is dependent on the request
-                        being performed.  Check the EC2 API guide
-                        for details.
-
-        :type dry_run: bool
-        :param dry_run: Set to True if the operation should not actually run.
+        :type name: string
+        :param name: Load balancer to get tags for
 
         :rtype: list
         :return: A list of :class:`boto.ec2.tag.Tag` objects
         """
         params = {}
-        if filters:
-            self.build_filter_params(params, filters)
-        if dry_run:
-            params['DryRun'] = 'true'
+
+        params['LoadBalancerNames.member.1'] = name
         return self.get_list('DescribeTags', params,
                              [('item', Tag)], verb='POST')
 
