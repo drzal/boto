@@ -21,34 +21,6 @@
 # IN THE SOFTWARE.
 
 
-class TagSet(dict):
-    """
-    A TagSet is used to collect the tags associated with a particular
-    EC2 resource.  Not all resources can be tagged but for those that
-    can, this dict object will be used to collect those values.  See
-    :class:`boto.ec2.ec2object.TaggedEC2Object` for more details.
-    """
-
-    def __init__(self, connection=None):
-        self.connection = connection
-        self._current_key = None
-        self._current_value = None
-
-    def startElement(self, name, attrs, connection):
-        if name == 'item':
-            self._current_key = None
-            self._current_value = None
-        return None
-
-    def endElement(self, name, value, connection):
-        if name == 'key':
-            self._current_key = value
-        elif name == 'value':
-            self._current_value = value
-        elif name == 'item':
-            self[self._current_key] = self._current_value
-
-
 class Tag(object):
     """
     A Tag is used when creating or listing all tags related to
