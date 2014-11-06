@@ -31,6 +31,7 @@ from boto.ec2.elb.loadbalancer import LoadBalancer, LoadBalancerZones
 from boto.ec2.elb.instancestate import InstanceState
 from boto.ec2.elb.healthcheck import HealthCheck
 from boto.regioninfo import RegionInfo, get_regions, load_regions
+from boto.ec2.elb.tag import Tag
 import boto
 from boto.compat import six
 
@@ -131,8 +132,13 @@ class ELBConnection(AWSQueryConnection):
         if marker:
             params['Marker'] = marker
 
-        return self.get_list('DescribeLoadBalancers', params,
-                             [('member', LoadBalancer)])
+        lb_list = self.get_list('DescribeLoadBalancers', params,
+                                [('member', LoadBalancer)])
+        for lb in lb_list:
+            print("Getting tags for %s" % lb.name)
+            for tag in self.get_all_tags(lb.name):
+                lb.tags[tag.name] = tag.value
+        return lb_list
 
     def create_load_balancer(self, name, zones, listeners=None, subnets=None,
                              security_groups=None, scheme='internet-facing',
@@ -772,7 +778,7 @@ class ELBConnection(AWSQueryConnection):
 
         params['LoadBalancerNames.member.1'] = name
         return self.get_list('DescribeTags', params,
-                             [('item', Tag)], verb='POST')
+                             [('member', Tag)], verb='POST')
 
     def build_tag_param_list(self,params, tags):
         keys = sorted(tags.keys())
